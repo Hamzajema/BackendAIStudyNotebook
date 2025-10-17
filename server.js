@@ -4,7 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-
+import fs from "fs";
+import path from "path";
 dotenv.config();
 
 const app = express();
@@ -12,25 +13,43 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Swagger configuration
+
 const options = {
   definition: {
-    openapi: '3.0.0',
-    info: { 
-      title: 'API StudyPro', 
-      version: '1.0.0',
-      description: 'API for managing study materials, schedules, goals, and more'
-    },
-    servers: [
-      {
-        url: 'http://localhost:5000',
-        description: 'Development server'
-      }
-    ]
+    openapi: "3.0.0",
+    info: { title: "Backend AI Study Notebook API", version: "1.0.0" },
   },
-  apis: ['./server.js'], // Path to the API docs
+  apis: ["./routes/*.js"], // adjust path to your routes
 };
 
 const specs = swaggerJsdoc(options);
+
+const swaggerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      SwaggerUIBundle({
+        spec: ${JSON.stringify(specs)},
+        dom_id: '#swagger-ui',
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      });
+    }
+  </script>
+</body>
+</html>
+`;
+
+// Write static HTML file in public folder
+fs.writeFileSync(path.join("public", "api-docs.html"), swaggerHtml);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // // Schemas
@@ -956,4 +975,5 @@ mongoose.connect(process.env.MONGODB_URI , {
 .catch(err => console.error('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
