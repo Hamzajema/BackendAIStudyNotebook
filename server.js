@@ -13,45 +13,41 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Swagger configuration
-
 const options = {
   definition: {
     openapi: "3.0.0",
     info: { title: "Backend AI Study Notebook API", version: "1.0.0" },
   },
-  apis: ["./routes/*.js"], // adjust path to your routes
+  apis: ["./server.js"], // your route files
 };
 
 const specs = swaggerJsdoc(options);
 
-const swaggerHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>API Docs</title>
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-</head>
-<body>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
-  <script>
-    window.onload = function() {
-      SwaggerUIBundle({
-        spec: ${JSON.stringify(specs)},
-        dom_id: '#swagger-ui',
-        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
-      });
-    }
-  </script>
-</body>
-</html>
-`;
-
-// Write static HTML file in public folder
-fs.writeFileSync(path.join("public", "api-docs.html"), swaggerHtml);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-
+app.get("/api-docs", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>API Docs</title>
+      <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+    </head>
+    <body>
+      <div id="swagger-ui"></div>
+      <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+      <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
+      <script>
+        window.onload = function() {
+          SwaggerUIBundle({
+            spec: ${JSON.stringify(specs)},
+            dom_id: '#swagger-ui',
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          });
+        }
+      </script>
+    </body>
+    </html>
+  `);
+});
 // // Schemas
 // const MaterialSchema = new mongoose.Schema({
 //   id: { type: Number, required: true },
@@ -977,3 +973,4 @@ mongoose.connect(process.env.MONGODB_URI , {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
